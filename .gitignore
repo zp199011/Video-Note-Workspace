@@ -1,0 +1,12 @@
+.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+.git-backup-*/
+
+# Local runtime data, task records, notes, logs, media, and models stay on this machine.
+data/
+
+# Project-local records kept on this machine, not published to GitHub.
+/阶段2验收记录.MD
+/项目.MD

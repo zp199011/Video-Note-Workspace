@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#171614" />
+    <title>字幕研究室 / 视频笔记工作台</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="noise" aria-hidden="true"></div>
+    <div class="app-shell">
+      <header class="topbar">
+        <button id="brand-button" class="brand" type="button" aria-label="返回笔记首页">
+          <span class="brand-mark"><span></span><span></span><span></span></span>
+          <span>
+            <strong>字幕研究室</strong>
+            <small>VIDEO NOTE WORKSPACE</small>
+          </span>
+        </button>
+        <div class="topbar-meta">
+          <span id="global-status-dot" class="live-dot"></span>
+          <span id="global-status">本机运行</span>
+          <span class="meta-divider"></span>
+          <span>LOCAL-FIRST / v0.2</span>
+        </div>
+        <div class="topbar-actions">
+          <button id="activity-log-button" class="top-action" type="button">操作日志</button>
+          <button id="settings-button" class="top-action" type="button">设置</button>
+          <span class="top-action">B站 · 抖音</span>
+        </div>
+      </header>
+
+      <main>
+        <section id="library-view" class="view library-view" aria-label="视频笔记首页">
+          <section class="create-deck" aria-label="创建视频笔记">
+            <div class="deck-head">
+              <div><span class="section-number">02</span><span class="section-title">新建一条视频笔记</span></div>
+              <span id="create-status" class="deck-status"><span class="status-ring"></span> 等待链接</span>
+            </div>
+            <form id="note-form" class="url-form">
+              <label class="url-field">
+                <span class="url-icon">↗</span>
+                <input id="url-input" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="粘贴 B站或抖音视频链接" required />
+              </label>
+              <button id="create-note-button" class="primary-button" type="submit">
+                <span class="button-label">创建笔记</span>
+                <span class="button-arrow">↗</span>
+              </button>
+            </form>
+            <div class="note-options">
+              <details class="session-details">
+                <summary><span>视频需要登录才能读取？</span><b>可选设置 +</b></summary>
+                <div class="session-panel">
+                  <label class="session-field">
+                    <span>B站 SESSDATA <small>只填值，不要填 Cookie=...</small></span>
+                    <input id="sessdata-input" type="password" autocomplete="off" spellcheck="false" placeholder="只在当前请求内使用" />
+                  </label>
+                  <label class="session-checkbox"><input id="douyin-browser-cookies" type="checkbox" /><span>抖音受限时，允许本次从 Chrome 读取登录状态</span></label>
+                  <p>登录信息只由本机解析器在当前请求中使用，不写入笔记和日志。</p>
+                </div>
+              </details>
+              <label class="option-field">
+                <span>AI 处理引擎</span>
+                <select id="create-engine-select">
+                  <option value="none">暂不处理</option>
+                  <option value="api">普通 API</option>
+                  <option value="codex">Codex</option>
+                </select>
+              </label>
+              <label class="option-field tag-option">
+                <span>初始标签</span>
+                <input id="create-tags-input" type="text" placeholder="用逗号分隔，例如：AI,设计" />
+              </label>
+            </div>
+            <div class="deck-foot"><span>支持 B站完整链接 / b23.tv / BV 号，以及抖音完整链接 / 分享短链接</span><span class="deck-foot-right">先保存来源，再处理 AI</span></div>
+          </section>
+
+          <section class="library-layout" aria-label="我的视频笔记">
+            <aside class="library-nav">
+              <div class="nav-kicker">WORKSPACE</div>
+              <button id="nav-all-button" class="nav-item active" type="button"><span class="nav-icon">▤</span>我的笔记<span id="nav-note-count" class="nav-count">0</span></button>
+              <button id="nav-pending-button" class="nav-item" type="button"><span class="nav-icon">◌</span>待处理<span id="nav-pending-count" class="nav-count">0</span></button>
+              <button id="nav-trash-button" class="nav-item" type="button"><span class="nav-icon">⌫</span>回收站<span id="nav-trash-count" class="nav-count">0</span></button>
+              <div class="nav-rule"></div>
+              <div class="nav-note">
+                <span class="tiny-orb"></span>
+                <strong>当前原则</strong>
+                <p>字幕优先。没有字幕时，笔记仍然保留，等待后续音频转写。</p>
+              </div>
+            </aside>
+            <section class="notes-pane">
+              <div class="notes-head">
+                <div>
+                  <div class="column-kicker"><span>03</span> NOTE LIBRARY</div>
+                  <h2>最近笔记</h2>
+                </div>
+                <label class="library-search"><span>⌕</span><input id="notes-search" type="search" placeholder="搜索标题、UP主或标签" /></label>
+              </div>
+              <div class="notes-filter-row">
+                <button class="filter-button active" data-filter="all" type="button">全部</button>
+                <button class="filter-button" data-filter="pinned" type="button">置顶</button>
+                <button class="filter-button" data-filter="pending" type="button">待处理</button>
+                <button class="filter-button" data-filter="deleted" type="button">回收站</button>
+                <span id="notes-meta" class="notes-meta">0 条笔记</span>
+              </div>
+              <div id="notes-loading" class="list-state" hidden><span class="loading-dot"></span>正在读取本地笔记…</div>
+              <div id="notes-empty" class="list-state empty-list-state"><span class="empty-symbol">—</span><strong>还没有视频笔记。</strong><p>从上面粘贴一个 B站或抖音链接，第一条笔记会从这里开始。</p></div>
+              <div id="notes-list" class="notes-list" hidden></div>
+            </section>
+          </section>
+        </section>
+
+        <section id="note-view" class="view note-view" hidden aria-labelledby="note-title">
+          <header class="note-header">
+            <div class="note-header-main">
+              <button id="back-to-library" class="back-button" type="button" aria-label="返回我的笔记">←</button>
+              <div class="note-heading">
+                <textarea id="note-title" class="note-title-input" rows="1" aria-label="笔记标题" spellcheck="false"></textarea>
+                <div class="note-meta-line"><span id="note-source-meta"></span><span class="meta-divider"></span><span id="note-processing-status">原文已保存</span></div>
+              </div>
+            </div>
+            <div class="note-header-actions">
+              <a id="note-original-link" class="header-link" href="#" target="_blank" rel="noreferrer">原链接 ↗</a>
+              <button id="generation-log-button" class="header-button" type="button">生成日志</button>
+              <button id="export-md-button" class="header-button" type="button">下载总 MD</button>
+              <button id="export-obsidian-button" class="header-button" type="button">写入 Obsidian</button>
+              <button id="delete-note-button" class="header-button danger-button" type="button">删除</button>
+            </div>
+          </header>
+
+          <div class="note-toolbar-row">
+            <div class="note-tags" id="note-tags"></div>
+            <div class="engine-control">
+              <span>AI 引擎</span>
+              <select id="note-engine-select" aria-label="AI处理引擎">
+                <option value="none">暂不处理</option>
+                <option value="api">普通 API</option>
+                <option value="codex">Codex</option>
+              </select>
+              <span>平台</span>
+              <select id="note-provider-select" aria-label="API平台">
+                <option value="">底座默认平台</option>
+              </select>
+              <span>模型</span>
+              <select id="note-model-select" aria-label="AI模型">
+                <option value="">底座默认模型</option>
+              </select>
+              <span id="ai-engine-status" class="engine-status">检测中</span>
+            </div>
+          </div>
+
+          <section id="knowledge-workflow" class="knowledge-workflow" aria-label="API 与 Codex 知识沉淀流程">
+            <div class="knowledge-workflow-head">
+              <div><span class="column-kicker"><span>04</span> KNOWLEDGE PIPELINE</span><strong>API 整理全量资料 → Codex 核查合成</strong></div>
+              <span id="knowledge-status-badge" class="knowledge-status-badge">尚未开始</span>
+            </div>
+            <div class="knowledge-workflow-body">
+              <div class="knowledge-options">
+                <label>字幕版本<select id="knowledge-transcript-mode"><option value="polished">AI 润色版</option><option value="speaker">说话人版</option><option value="original">原文</option></select></label>
+              </div>
+              <div class="knowledge-actions">
+                <button id="knowledge-api-button" class="small-action accent-action knowledge-api-action" data-generation-status="not_generated" type="button">
+                  <span id="knowledge-api-label" class="action-label">1. API 整理资料</span>
+                  <span id="knowledge-api-button-status" class="generation-status">未开始</span>
+                </button>
+                <button id="knowledge-codex-button" class="small-action" type="button" disabled>2. Codex 核查并合成</button>
+                <button id="knowledge-readiness-button" class="knowledge-readiness-button" type="button" aria-expanded="false" aria-controls="knowledge-integrity-panel">
+                  <span class="knowledge-readiness-dot" aria-hidden="true"></span>
+                  <span id="knowledge-readiness-label">资料不完整</span>
+                  <small>查看完整度</small>
+                  <span class="knowledge-readiness-arrow" aria-hidden="true">⌄</span>
+                </button>
+              </div>
+              <div class="knowledge-gate-copy">只有资料完整度达到 100%，Codex 才会解锁。</div>
+              <div id="knowledge-task-progress" class="knowledge-task-progress" role="status" aria-live="polite" hidden>
+                <div class="knowledge-task-progress-head">
+                  <span id="knowledge-task-progress-mark" class="knowledge-task-progress-mark" aria-hidden="true">◌</span>
+                  <div>
+                    <strong id="knowledge-task-progress-title">正在提交 API 资料整理</strong>
+                    <p id="knowledge-task-progress-message">正在建立分块任务，请稍候。</p>
+                  </div>
+                  <span id="knowledge-task-progress-percent" class="knowledge-task-progress-percent">0%</span>
+                </div>
+                <div class="knowledge-task-progress-track" aria-hidden="true"><span id="knowledge-task-progress-bar"></span></div>
+                <div class="knowledge-task-progress-foot">
+                  <span id="knowledge-task-progress-meta">准备中 · 00:00</span>
+                  <button id="knowledge-task-log-button" type="button">查看生成日志 ↗</button>
+                </div>
+              </div>
+            </div>
+            <div id="knowledge-integrity-panel" class="knowledge-integrity-panel" hidden>
+              <div class="knowledge-integrity-head">
+                <div><span class="knowledge-integrity-kicker">CODEX INPUT GATE</span><strong id="knowledge-integrity-title">资料完整度</strong></div>
+                <span id="knowledge-integrity-percent" class="knowledge-integrity-percent">0%</span>
+              </div>
+              <div id="knowledge-integrity-summary" class="knowledge-integrity-summary"></div>
+              <div id="knowledge-checks" class="knowledge-checks"><span>尚未执行 API 资料整理。</span></div>
+            </div>
+          </section>
+
+          <div class="note-workspace">
+            <aside class="outline-panel panel-surface">
+              <div class="panel-topline"><span class="column-kicker"><span>05</span> STRUCTURE</span><button id="structure-refresh" class="icon-button" type="button" title="刷新结构">↻</button></div>
+              <div class="left-tabs" role="tablist">
+                <button class="left-tab active" data-left-tab="mindmap" type="button">思维导图</button>
+                <button class="left-tab" data-left-tab="outline" type="button">文字大纲</button>
+              </div>
+              <div id="left-content" class="left-content"></div>
+              <div class="panel-footnote">文字大纲节点可点击回到原文；思维导图用于查看概念关系，并支持缩放、全屏和导出。</div>
+            </aside>
+
+            <section class="transcript-panel panel-surface">
+              <div class="transcript-head note-transcript-head">
+                <div>
+                  <div class="transcript-tabs" role="tablist">
+                    <button class="transcript-tab active" data-transcript-mode="original" type="button">原文</button>
+                    <button class="transcript-tab" data-transcript-mode="polished" type="button">AI润色版</button>
+                    <button class="transcript-tab" data-transcript-mode="speaker" type="button">说话人版</button>
+                  </div>
+                  <p id="transcript-meta">保留原始时间轴。</p>
+                </div>
+                <div class="transcript-actions">
+                  <button id="refresh-subtitles-button" class="small-action accent-action" type="button">获取原始字幕</button>
+                  <button id="asr-button" class="small-action" type="button" title="只下载音频并在本机使用 FunASR 生成时间轴"><span class="action-label">本地 ASR</span><span id="asr-status" class="generation-status">检测中</span></button>
+                  <button id="diarization-button" class="small-action" type="button" title="仅在主动点击后使用 CAM++ 识别说话人"><span class="action-label">说话人识别</span><span id="diarization-status" class="generation-status">未运行</span></button>
+                  <button id="polish-button" class="small-action accent-action" data-analysis-operation="polish" type="button"><span class="action-label">AI润色</span><span class="generation-status" data-generation-status="polish">未生成</span></button>
+                  <button id="outline-button" class="small-action" data-analysis-operation="outline" type="button"><span class="action-label">生成大纲</span><span class="generation-status" data-generation-status="outline">未生成</span></button>
+                  <button id="mindmap-button" class="small-action" data-analysis-operation="mindmap" type="button"><span class="action-label">生成导图</span><span class="generation-status" data-generation-status="mindmap">未生成</span></button>
+                  <button id="structure-button" class="small-action accent-action" data-analysis-operation="structure" type="button" title="使用 AI 润色版同时生成文字大纲和思维导图"><span class="action-label">同时生成</span><span class="generation-status" data-generation-status="structure">未生成</span></button>
+                </div>
+              </div>
+              <div class="transcript-controls">
+                <div class="select-cluster">
+                  <label>分 P<select id="page-select"></select></label>
+                  <label>字幕轨道<select id="track-select"></select></label>
+                </div>
+                <div id="speaker-filter-control" class="select-cluster speaker-filter-control" hidden>
+                  <label>说话人<select id="speaker-filter" aria-label="筛选说话人"><option value="all">全部说话人</option></select></label>
+                </div>
+                <div class="analysis-scope-controls" aria-label="AI处理范围">
+                  <span class="scope-kicker">本次 AI</span>
+                  <label>P 范围<select id="analysis-page-scope" aria-label="AI处理P范围"><option value="current">当前 P</option><option value="all">全部 P</option></select></label>
+                  <label>轨道范围<select id="analysis-track-scope" aria-label="AI处理字幕轨道范围"><option value="current">当前轨道</option><option value="all">全部轨道</option></select></label>
+                  <span id="analysis-scope-summary" class="analysis-scope-summary"></span>
+                </div>
+                <label class="search-box"><span>⌕</span><input id="transcript-search" type="search" placeholder="在文字稿中查找" /></label>
+                <span id="segment-count" class="segment-count">0 段</span>
+              </div>
+              <div id="speaker-labels" class="speaker-labels" hidden></div>
+              <div id="transcript-state" class="transcript-state" hidden></div>
+              <div id="transcript-list" class="transcript-list"></div>
+            </section>
+
+            <aside class="right-stack">
+              <section class="video-panel panel-surface">
+                <div class="panel-topline"><span class="column-kicker"><span>06</span> VIDEO PLAYER</span><span><label class="panel-link media-picker-link" for="media-upload-input">本地媒体</label> · <a id="player-open-link" class="panel-link" href="#" target="_blank" rel="noreferrer">打开原视频 ↗</a></span></div>
+                <div class="player-frame-wrap"><iframe id="player-frame" title="在线视频播放器" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe><video id="local-player" class="player-frame" controls playsinline preload="metadata" hidden></video><div id="player-fallback" class="player-fallback" hidden><strong>播放器暂时无法嵌入</strong><p id="player-fallback-copy">可以打开原视频，或拖入本地媒体继续识别。</p><a id="player-fallback-link" href="#" target="_blank" rel="noreferrer">打开原视频 ↗</a><label class="media-upload-action"><input id="media-upload-input" type="file" accept="video/mp4,video/quicktime,video/webm,audio/mpeg,audio/mp4,audio/wav,.m4v,.m4a" />拖入 / 选择本地媒体</label></div></div>
+                <div class="player-caption"><span id="player-title"></span><span id="player-time">00:00</span></div>
+              </section>
+
+              <section class="record-panel panel-surface">
+                <div class="panel-topline"><span class="column-kicker"><span>07</span> MY RECORD</span><span id="record-status" class="save-status">未编辑</span></div>
+                <div id="record-toolbar" class="record-toolbar" aria-label="记录格式工具栏">
+                  <button data-command="undo" type="button" title="后退">↶</button>
+                  <button data-command="redo" type="button" title="前进">↷</button>
+                  <span class="toolbar-divider"></span>
+                  <button data-command="bold" type="button" title="加粗"><b>B</b></button>
+                  <button data-command="italic" type="button" title="斜体"><i>I</i></button>
+                  <button data-command="strikeThrough" type="button" title="删除线"><s>S</s></button>
+                  <button data-command="underline" type="button" title="下划线"><u>U</u></button>
+                  <span class="toolbar-divider"></span>
+                  <button data-command="justifyLeft" type="button" title="左对齐">≡</button>
+                  <button data-command="justifyCenter" type="button" title="居中">≡</button>
+                  <button data-command="justifyRight" type="button" title="右对齐">≡</button>
+                  <select id="record-format" title="正文/标题"><option value="p">正文</option><option value="h2">标题</option><option value="h3">小标题</option></select>
+                  <select id="record-size" title="字号"><option value="2">小</option><option value="3" selected>中</option><option value="4">大</option><option value="5">特大</option></select>
+                  <label class="color-control" title="字体颜色"><span>A</span><input id="record-color" type="color" value="#e8ff73" /></label>
+                  <label class="color-control highlight-control" title="背景色高亮"><span>▰</span><input id="record-highlight" type="color" value="#765cf2" /></label>
+                </div>
+                <div id="record-editor" class="record-editor" contenteditable="true" data-placeholder="记下你的灵感、重点和待办…"></div>
+              </section>
+            </aside>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer"><span>字幕研究室 / local-first utility</span><span>支持 B站字幕与抖音本地 ASR</span></footer>
+    </div>
+
+    <dialog id="settings-dialog" class="settings-dialog">
+      <form method="dialog" id="settings-form">
+        <div class="dialog-head"><div><span class="column-kicker"><span>08</span> LOCAL SETTINGS</span><h2>本机设置</h2></div><button class="dialog-close" value="cancel" type="submit">×</button></div>
+        <label class="settings-field"><span>AI 底座地址</span><input id="settings-ai-base" type="url" placeholder="例如 http://127.0.0.1:3000" /><small>只填写你本机“无限画布_国内电商”实际运行的地址，不要把 API Key 写在这里。</small></label>
+        <label class="settings-field"><span>Obsidian Vault 路径</span><input id="settings-vault" type="text" placeholder="/Users/你的名字/Documents/Obsidian" /><small>必须是本机已经存在的文件夹。</small></label>
+        <label class="settings-field"><span>Obsidian 子文件夹</span><input id="settings-folder" type="text" placeholder="视频笔记" /></label>
+        <div class="settings-section-title">本地 ASR</div>
+        <label class="settings-field"><span>Python 路径</span><input id="settings-asr-python" type="text" /><small>推荐使用项目内 .venv/bin/python；运行 npm run setup:asr 可安装。</small></label>
+        <label class="settings-field"><span>模型缓存目录</span><input id="settings-asr-model-dir" type="text" /><small>首次运行会下载模型到这里，请预留数 GB 磁盘。</small></label>
+        <label class="settings-field"><span>ASR / VAD / 标点模型</span><div class="settings-inline"><input id="settings-asr-model" type="text" placeholder="paraformer-zh" /><input id="settings-asr-vad" type="text" placeholder="fsmn-vad" /><input id="settings-asr-punc" type="text" placeholder="ct-punc" /></div></label>
+        <label class="settings-field"><span>说话人模型</span><input id="settings-speaker-model" type="text" placeholder="cam++" /><small>只在主动启动说话人识别时加载；不会随新建笔记或 ASR 自动运行。</small></label>
+        <label class="settings-field"><span>说话人版合并间隔 / 最大段长（秒）</span><div class="settings-inline"><input id="settings-speaker-gap" type="number" min="0" max="10" step="0.1" /><input id="settings-speaker-max" type="number" min="5" max="120" step="1" /></div></label>
+        <label class="settings-field"><span>运行设备 / CPU 线程</span><div class="settings-inline"><select id="settings-asr-device"><option value="cpu">CPU（稳妥）</option><option value="mps">Apple MPS（实验性）</option></select><input id="settings-asr-threads" type="number" min="1" max="16" /></div></label>
+        <div id="settings-asr-diagnostics" class="dialog-message"></div>
+        <div id="settings-message" class="dialog-message" hidden></div>
+        <div class="dialog-actions"><button class="dialog-secondary" value="cancel" type="submit">取消</button><button id="settings-save" class="dialog-primary" value="default" type="submit">保存设置</button></div>
+      </form>
+    </dialog>
+
+    <dialog id="generation-log-dialog" class="settings-dialog generation-log-dialog">
+      <div class="dialog-head"><div><span class="column-kicker"><span>09</span> GENERATION LOG</span><h2>生成日志</h2></div><button id="generation-log-close" class="dialog-close" value="cancel" type="button">×</button></div>
+      <div id="generation-log-list" class="generation-log-list"></div>
+    </dialog>
+
+    <dialog id="activity-log-dialog" class="settings-dialog generation-log-dialog">
+      <div class="dialog-head"><div><span class="column-kicker"><span>11</span> OPERATION LOG</span><h2>完整操作日志</h2></div><button id="activity-log-close" class="dialog-close" type="button">×</button></div>
+      <div class="activity-log-controls">
+        <button class="filter-button active" data-log-scope="all" type="button">全部时间</button>
+        <button class="filter-button" data-log-scope="note" type="button">当前笔记</button>
+        <label>开始<input id="activity-log-from" type="datetime-local" /></label>
+        <label>结束<input id="activity-log-to" type="datetime-local" /></label>
+        <button id="activity-log-refresh" class="small-action" type="button">刷新</button>
+      </div>
+      <div id="activity-log-list" class="generation-log-list"></div>
+    </dialog>
+
+    <dialog id="mindmap-dialog" class="mindmap-dialog">
+      <div class="mindmap-dialog-head"><div><span class="column-kicker"><span>10</span> MINDMAP VIEW</span><h2>思维导图</h2></div><button id="mindmap-dialog-close" class="dialog-close" type="button">×</button></div>
+      <div id="mindmap-dialog-content" class="mindmap-dialog-content"></div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>
