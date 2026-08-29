@@ -1,4 +1,4 @@
-# 字幕研究室 / Video Subtitle Lab
+# 字幕研究室 / Video-Note-Workspace
 
 一个本地运行的 B站、抖音视频转写与知识沉淀工作台。
 
